@@ -14,20 +14,20 @@ type pmdReport struct {
 			RuleId  string `json:"ruleId"`
 			Message struct {
 				Text string `json:"text"`
-			} `json: "message"`
+			} `json:"message"`
 			Locations []struct {
 				PhysicalLocation struct {
 					ArtifactLocation struct {
 						Uri string `json:"uri"`
-					} `json: "artifactLocation"`
+					} `json:"artifactLocation"`
 					Region struct {
 						StartLine int `json:"startLine"`
-						EndLine   int `json: "endLine"`
-					} `json: "region"`
-				} `json: "physicalLocation"`
-			} `json: "locations"`
+						EndLine   int `json:"endLine"`
+					} `json:"region"`
+				} `json:"physicalLocation"`
+			} `json:"locations"`
 		} `json:"results"`
-	} `json: "runs"`
+	} `json:"runs"`
 }
 
 func readPMDFile(path string) (*pmdReport, error) {
