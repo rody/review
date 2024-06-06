@@ -4,19 +4,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type pmdReport struct {
-	Version string `json:"pmdVersion"`
-	Files   []struct {
-		Filename   string `json:"filename"`
-		Violations []struct {
-			Line        int    `json:"beginLine"`
-			Description string `json:"description"`
-			Rule        string `json:"rule"`
-			Priority    int    `json:"priority"`
-		} `json:"violations"`
-	} `json:"files"`
+	Runs []struct {
+		Results []struct {
+			Level   string `json:"level"`
+			RuleId  string `json:"ruleId"`
+			Message struct {
+				Text string `json:"text"`
+			} `json: "message"`
+			Locations []struct {
+				PhysicalLocation struct {
+					ArtifactLocation struct {
+						Uri string `json:"uri"`
+					} `json: "artifactLocation"`
+					Region struct {
+						StartLine int `json:"startLine"`
+						EndLine   int `json: "endLine"`
+					} `json: "region"`
+				} `json: "physicalLocation"`
+			} `json: "locations"`
+		} `json:"results"`
+	} `json: "runs"`
 }
 
 func readPMDFile(path string) (*pmdReport, error) {
@@ -37,28 +48,29 @@ func readPMDFile(path string) (*pmdReport, error) {
 
 func (r *pmdReport) violations() ([]violation, error) {
 	var result []violation
-	for _, f := range r.Files {
-		for _, v := range f.Violations {
-			result = append(result, violation{
-				rule:     v.Rule,
-				line:     v.Line,
-				filename: f.Filename,
-				message:  v.Description,
-				severity: toSeverity(v.Priority),
-			})
+
+	for _, f := range r.Runs {
+		for _, x := range f.Results {
+			for _, l := range x.Locations {
+				result = append(result, violation{
+					rule:     x.RuleId,
+					line:     l.PhysicalLocation.Region.StartLine,
+					filename: stripPath(l.PhysicalLocation.ArtifactLocation.Uri, "force-app"),
+					message:  x.Message.Text,
+					severity: x.Level,
+				})
+			}
+
 		}
 	}
 
 	return result, nil
 }
 
-func toSeverity(pmdPriority int) severity {
-	switch pmdPriority {
-	case 1:
-		return severityError
-	case 2, 3:
-		return severityWarning
-	default:
-		return severityInfo
+func stripPath(input, keyword string) string {
+	index := strings.Index(input, keyword)
+	if index != -1 {
+		return input[index:]
 	}
+	return input
 }

@@ -2,33 +2,12 @@ package main
 
 import "fmt"
 
-type severity int
-
-const (
-	severityError severity = iota
-	severityWarning
-	severityInfo
-)
-
-func (s severity) String() string {
-	switch s {
-	case severityError:
-		return "error"
-	case severityInfo:
-		return "info"
-	case severityWarning:
-		return "warning"
-	default:
-		return "unknown"
-	}
-}
-
 type violation struct {
 	rule     string
 	line     int
 	filename string
 	message  string
-	severity severity
+	severity string
 }
 
 type linter interface {
@@ -47,10 +26,6 @@ type command struct {
 	linter   linter
 	content  contentChecker
 	reporter reporter
-}
-
-func newCommand() *command {
-	return &command{}
 }
 
 func (cmd *command) run() (int, error) {

@@ -104,6 +104,6 @@ func run(r io.Reader, wout, werr io.Writer) int {
 		fmt.Fprintf(werr, "%d violations found.\n", violationCount)
 		return 1
 	}
-
+	fmt.Print("No violations found.")
 	return 0
 }

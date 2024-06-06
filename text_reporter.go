@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"io"
-	"slices"
-	"strings"
+	"os"
+
+	"github.com/jedib0t/go-pretty/v6/table"
 )
 
 type textReporter struct {
@@ -23,13 +23,18 @@ func (tr textReporter) report(violations []violation) error {
 		return nil
 	}
 
-	slices.SortFunc(violations, func(a, b violation) int {
-		return int(a.severity) - int(b.severity)
-	})
-
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"File", "Line", "Severity", "Rule", "Message"})
 	for _, v := range violations {
-		fmt.Fprintf(tr.w, "%s\t%s\t%s:%d\t%s\n", strings.ToUpper(v.severity.String()), v.rule, v.filename, v.line, v.message)
+		t.AppendRow([]interface{}{
+			v.filename,
+			v.line,
+			v.rule,
+			v.severity,
+			v.message})
 	}
+	t.Render()
 
 	return nil
 }
